@@ -92,6 +92,7 @@ public class PollActivity extends AppCompatActivity {
     private ProductRepo             productRepo;
 
     private GPSTracker              gpsTracker;
+    private ArrayList<PollOption>   pollOptions;
     private int                     isYesNo;
     private String                  comment;
     private String                  selectedOptions;
@@ -192,6 +193,7 @@ public class PollActivity extends AppCompatActivity {
         auditRoadStore      = (AuditRoadStore)  auditRoadStoreRepo.findByStoreIdAndAuditId(store_id,audit_id);
         poll                = (Poll)            pollRepo.findByCompanyAuditIdAndOrder(auditRoadStore.getList().getCompany_audit_id(),orderPoll);
         product             = (Product)         productRepo.findById(product_id);
+        pollOptions         = (ArrayList<PollOption>) pollOptionRepo.findByPollId(poll.getId());
 
         poll.setCategory_product_id(category_product_id);
         poll.setProduct_id(product_id);
@@ -258,15 +260,35 @@ public class PollActivity extends AppCompatActivity {
                                 return;
                             }
                         }
+//                        if(checkBoxArray != null) {
+//                            for(CheckBox r:checkBoxArray ) {
+//                                if(r.isChecked()){
+//                                    selectedOptions.concat(r.getTag().toString()+"|");
+//                                    counterSelected ++;
+//                                }
+//                            }
+//                            if(counterSelected==0){
+//                                Toast.makeText(activity, R.string.message_select_options, Toast.LENGTH_SHORT).show();
+//                                return;
+//                            }
+//                        }
+
                         if(checkBoxArray != null) {
                             for(CheckBox r:checkBoxArray ) {
                                 if(r.isChecked()){
-                                    selectedOptions.concat(r.getTag().toString()+"|");
+                                    selectedOptions= r.getTag().toString()+"|" + selectedOptions;
                                     counterSelected ++;
                                 }
                             }
+                            for (PollOption m: pollOptions) {
+                                if (m.getComment()==1) {
+                                    commentOptions = etCommentOption.getText().toString() + "|" + commentOptions;
+                                } else {
+                                    commentOptions =  "|" + commentOptions;
+                                }
+                            }
                             if(counterSelected==0){
-                                Toast.makeText(activity, R.string.message_select_options, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(activity, R.string.message_select_options,Toast.LENGTH_SHORT).show();
                                 return;
                             }
                         }
@@ -314,6 +336,7 @@ public class PollActivity extends AppCompatActivity {
         media.setStore_id(store_id);
         media.setPoll_id(poll.getId());
         media.setCompany_id(company_id);
+        media.setProduct_id(product_id);
         media.setType(1);
         AndroidCustomGalleryActivity.createInstance((Activity) activity, media);
     }
@@ -407,11 +430,10 @@ public class PollActivity extends AppCompatActivity {
                     if (!AuditUtil.closeAllAuditRoadStore(store_id, company_id)) return false;
                 }
                 break;
-            case 3: case 4: case 5: case 6: case 7: //case 8: case 9:
+            case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13:
                 if (!AuditUtil.insertPollDetail(pollDetail)) return false;
                 break;
-
-            case 8:
+            case 14:
                 if (!AuditUtil.insertPollDetail(pollDetail)) return false;
                 if (!AuditUtil.closeAuditStore(audit_id, store_id, company_id, route.getId()))return false;
                 if (!AuditUtil.closeAllAuditRoadStore(store_id, company_id)) return false;
@@ -553,13 +575,13 @@ public class PollActivity extends AppCompatActivity {
 
                 break;
 //
-//            case 9:
-//                poll.setOrder(10);
-//                PollActivity.createInstance(activity, store_id,audit_id,poll);
-//                finish();
-//                break;
+            case 9: case 10: case 11: case 12: case 13:
+                poll.setOrder(orderPoll + 1);
+                PollActivity.createInstance(activity, store_id,audit_id,poll);
+                finish();
+                break;
 
-            case 9:
+            case 14:
                 ArrayList<AuditRoadStore> auditRoadStores = (ArrayList<AuditRoadStore>) auditRoadStoreRepo.findByStoreId(store_id);
                 for (AuditRoadStore m: auditRoadStores){
                     m.setAuditStatus(1);
@@ -615,8 +637,14 @@ public class PollActivity extends AppCompatActivity {
                     }
                 });
                 break;
-            case 5: case 6: case 7: case 8: case 9: case 10:
-                showPollOptionsControl(true);
+            case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14:
+                swYesNo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if(isChecked) showPollOptionsControl(true); else showPollOptionsControl(false);
+                        //if(isChecked) btPhoto.setVisibility(View.GONE); else btPhoto.setVisibility(View.VISIBLE);
+                    }
+                });
                 break;
 
 
@@ -657,13 +685,81 @@ public class PollActivity extends AppCompatActivity {
      * Muestra las opciones de un Poll siempre y cuando tenga option
      * @param visibility
      */
-    private void showPollOptionsControl(boolean visibility) {
-        ArrayList<PollOption> pollOptions;
-        pollOptions = (ArrayList<PollOption>) pollOptionRepo.findByPollId(poll.getId());
+//    private void showPollOptionsControl(boolean visibility) {
+//        ArrayList<PollOption> pollOptions;
+//        pollOptions = (ArrayList<PollOption>) pollOptionRepo.findByPollId(poll.getId());
+//
+//        lyOptions.removeAllViews();
+//        lyOptionComment.removeAllViews();
+//        radioButtonArray = null;
+//
+//        if(radioGroup != null ){
+//            radioGroup.clearCheck();
+//        }
+//        if (visibility){
+//            lyOptions.removeAllViews();
+//            lyOptionComment.removeAllViews();
+//            if(poll.getOptions()== 1) {
+//                if(swYesNo.isChecked())isYesNo=1; else isYesNo =0; // Estableciendo valor de la variable isYesNo
+//                if (poll.getOption_type() == 0) {
+//                    radioGroup = new RadioGroup(activity);
+//                    radioGroup.setOrientation(LinearLayout.VERTICAL);
+//
+//                    int counter =0;
+//                    for (PollOption po: pollOptions) {
+//                        if (isYesNo == po.getOption_yes_no()) {
+//                            counter ++;
+//                        }
+//                    }
+////                    radioButtonArray = new RadioButton[pollOptions.size()];
+//                    radioButtonArray = new RadioButton[counter];
+//                    counter =0;
+//                    for (PollOption po: pollOptions){
+//
+//                        if (isYesNo == po.getOption_yes_no()) {
+//                            radioButtonArray[counter] = new RadioButton(activity);
+//                            radioButtonArray[counter].setText(po.getOptions());
+//                            radioButtonArray[counter].setTag(po.getCodigo());
+//                            if(po.getComment()==1) {
+//                                radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(View v) {
+//                                        lyOptionComment.removeAllViews();
+//                                        etCommentOption.setHint(activity.getString(R.string.text_comment));
+//                                        lyOptionComment.addView(etCommentOption);
+//                                    }
+//                                });
+//                            } else if(po.getComment()==0){
+//                                radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(View v) {
+//                                        lyOptionComment.removeAllViews();
+//                                    }
+//                                });
+//                            }
+//                            radioGroup.addView(radioButtonArray[counter]);
+//                            counter ++;
+//                        }
+//
+//                    }
+//                    lyOptions.addView(radioGroup);
+//                }
+//            }
+//        } else {
+//
+//            lyOptions.removeAllViews();
+//            lyOptionComment.removeAllViews();
+//            radioButtonArray = null;
+//        }
+//
+//    }
 
-        lyOptions.removeAllViews();
-        lyOptionComment.removeAllViews();
-        radioButtonArray = null;
+
+
+    private void showPollOptionsControl(boolean visibility) {
+//        ArrayList<PollOption>  pollOptions;
+//        pollOptions = (ArrayList<PollOption>) pollOptionRepo.findByPollId(poll.getId());
+
 
         if(radioGroup != null ){
             radioGroup.clearCheck();
@@ -672,49 +768,75 @@ public class PollActivity extends AppCompatActivity {
             lyOptions.removeAllViews();
             lyOptionComment.removeAllViews();
             if(poll.getOptions()== 1) {
-                if(swYesNo.isChecked())isYesNo=1; else isYesNo =0; // Estableciendo valor de la variable isYesNo
                 if (poll.getOption_type() == 0) {
                     radioGroup = new RadioGroup(activity);
                     radioGroup.setOrientation(LinearLayout.VERTICAL);
-
+                    radioButtonArray = new RadioButton[pollOptions.size()];
                     int counter =0;
-                    for (PollOption po: pollOptions) {
-                        if (isYesNo == po.getOption_yes_no()) {
-                            counter ++;
-                        }
-                    }
-//                    radioButtonArray = new RadioButton[pollOptions.size()];
-                    radioButtonArray = new RadioButton[counter];
-                    counter =0;
                     for (PollOption po: pollOptions){
-
-                        if (isYesNo == po.getOption_yes_no()) {
-                            radioButtonArray[counter] = new RadioButton(activity);
-                            radioButtonArray[counter].setText(po.getOptions());
-                            radioButtonArray[counter].setTag(po.getCodigo());
-                            if(po.getComment()==1) {
-                                radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        lyOptionComment.removeAllViews();
-                                        etCommentOption.setHint(activity.getString(R.string.text_comment));
-                                        lyOptionComment.addView(etCommentOption);
-                                    }
-                                });
-                            } else if(po.getComment()==0){
-                                radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        lyOptionComment.removeAllViews();
-                                    }
-                                });
-                            }
-                            radioGroup.addView(radioButtonArray[counter]);
-                            counter ++;
+                        radioButtonArray[counter] = new RadioButton(activity);
+                        radioButtonArray[counter].setText(po.getOptions());
+                        radioButtonArray[counter].setTag(po.getCodigo());
+                        if(po.getComment()==1) {
+                            radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    lyOptionComment.removeAllViews();
+                                    etCommentOption.setHint(activity.getString(R.string.text_comment));
+                                    lyOptionComment.addView(etCommentOption);
+                                }
+                            });
+                        } else if(po.getComment()==0){
+                            radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    lyOptionComment.removeAllViews();
+                                }
+                            });
                         }
-
+                        radioGroup.addView(radioButtonArray[counter]);
+                        counter ++;
                     }
                     lyOptions.addView(radioGroup);
+                } else if (poll.getOption_type() == 1) {
+                    checkBoxArray = new CheckBox[pollOptions.size()];
+                    int  counter =0;
+                    for ( final PollOption po: pollOptions){
+                        checkBoxArray[counter] = new CheckBox(activity);
+                        checkBoxArray[counter].setText(po.getOptions());
+                        checkBoxArray[counter].setTag(po.getCodigo());
+                        if(po.getComment()==1) {
+
+                            checkBoxArray[counter].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                    if (buttonView.isChecked()) {
+                                        lyOptionComment.removeAllViews();
+                                        etCommentOption.setHint(activity.getString(R.string.text_comment));
+                                        etCommentOption.setTag(po.getCodigo().toString());
+                                        lyOptionComment.addView(etCommentOption);
+                                    }
+                                    else
+                                    {
+                                        //not checked
+                                        lyOptionComment.removeAllViews();
+                                    }
+                                }
+                            });
+
+                        }
+//                        else if(po.getComment()==0){
+//                            checkBoxArray[counter].setOnClickListener(new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View v) {
+//                                    lyOptionComment.removeAllViews();
+//                                }
+//                            });
+//                        }
+                        lyOptions.addView(checkBoxArray[counter]);
+                        counter ++;
+                    }
+                    //lyOptions.addView(radioGroup);
                 }
             }
         } else {
@@ -722,6 +844,7 @@ public class PollActivity extends AppCompatActivity {
             lyOptions.removeAllViews();
             lyOptionComment.removeAllViews();
             radioButtonArray = null;
+            checkBoxArray = null;
         }
 
     }
